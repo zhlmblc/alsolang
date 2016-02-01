@@ -14,13 +14,24 @@ public interface UserService {
 
     public User selectLogin(String username);
 
-    public User getUserById(int i);
+    /**
+     * 根据主键查询用户
+     *
+     * @param id 主键
+     * @return
+     */
+    public User getUserById(Long id);
 
     public User selectByPrimaryKey(int i);
 
-    public User getUserByusername(String username);
+    public User getUserByUserId(String userId);
 
-    public int inster(User user);
+    /**
+     * 用户插入
+     * @param user
+     * @return
+     */
+    public Boolean insert(User user);
 
     public Boolean getLoginUser(User user);
 

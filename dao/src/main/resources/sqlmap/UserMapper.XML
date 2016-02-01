@@ -1,95 +1,167 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.ng.alsolang.dao.user.UserMapper" >
-    <resultMap id="BaseResultMap" type="com.ng.alsolang.domain.user.User" >
-        <id column="id" property="id" jdbcType="INTEGER" />
-        <result column="username" property="username" jdbcType="VARCHAR" />
-        <result column="password" property="password" jdbcType="VARCHAR" />
-        <result column="age" property="age" jdbcType="INTEGER" />
+
+<mapper namespace="com.ng.alsolang.dao.user.UserMapper">
+    <resultMap id="BaseResultMap" type="com.ng.alsolang.domain.user.User">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="USER_ID" property="userId" jdbcType="VARCHAR"/>
+        <result column="USER_NAME" property="userName" jdbcType="INTEGER"/>
+        <result column="PASSWORD" property="password" jdbcType="VARCHAR"/>
+        <result column="EMAIL" property="email" jdbcType="VARCHAR"/>
+        <result column="MOBILE" property="mobile" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="INTEGER"/>
+        <result column="CREATED" property="created" jdbcType="DATE"/>
+        <result column="MODIFIED" property="modified" jdbcType="DATE"/>
     </resultMap>
-    <sql id="Base_Column_List" >
-        id, username, password, age
+
+    <sql id="Base_Column_List">
+        ID, USER_ID, USER_NAME, PASSWORD, EMAIL, MOBILE, STATUS, CREATED, MODIFIED
     </sql>
 
-
+    <!--根据登陆名查询用户-->
     <select id="selectLogin" resultMap="BaseResultMap" parameterType="String">
-        select * from user
-        where username = #{username,jdbcType=VARCHAR}
+        select * from USER
+        where USER_ID = #{userId,jdbcType=VARCHAR}
     </select>
 
-
+    <!--根据主键查询用户-->
     <select id="selectId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
-        select * from user
-        where id = #{id,jdbcType=INTEGER}
+        select * from USER
+        where ID = #{id,jdbcType=BIGINT}
     </select>
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+
+    <!--根据主键查询用户-->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
         select
-        <include refid="Base_Column_List" />
-        from user
-        where id = #{id,jdbcType=INTEGER}
+        <include refid="Base_Column_List"/>
+        from USER
+        where ID = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
-        delete from user
-        where id = #{id,jdbcType=INTEGER}
+
+    <!--根据主键删除用户-->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from USER
+        where ID = #{id,jdbcType=BIGINT}
     </delete>
-    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.ng.alsolang.domain.user.User" >
-        insert into user (username, password, age)
-        values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{age,jdbcType=INTEGER})
+
+    <!--创建用户-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.ng.alsolang.domain.user.User">
+        insert into user (ID, USER_ID, USER_NAME, PASSWORD, EMAIL, MOBILE, STATUS, CREATED, MODIFIED)
+        values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=VARCHAR}, #{userName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+        #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, now(),null)
     </insert>
-    <insert id="insertSelective" parameterType="com.ng.alsolang.domain.user.User" >
-        insert into user
-        <trim prefix="(" suffix=")" suffixOverrides="," >
-            <if test="id != null" >
-                id,
+
+    <!--动态插入用户-->
+    <insert id="insertSelective" parameterType="com.ng.alsolang.domain.user.User">
+        insert into USER
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                ID,
             </if>
-            <if test="username != null" >
-                username,
+            <if test="userId != null">
+                USER_ID,
             </if>
-            <if test="password != null" >
-                password,
+            <if test="userName != null">
+                USER_NAME,
             </if>
-            <if test="age != null" >
-                age,
+            <if test="password != null">
+                PASSWORD,
+            </if>
+            <if test="email != null">
+                EMAIL,
+            </if>
+            <if test="mobile != null">
+                MOBILE,
+            </if>
+            <if test="status != null">
+                STATUS,
+            </if>
+            <if test="created != null">
+                CREATED,
+            </if>
+            <if test="modified != null">
+                MODIFIED,
             </if>
         </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides="," >
-            <if test="id != null" >
-                #{id,jdbcType=INTEGER},
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
             </if>
-            <if test="username != null" >
-                #{username,jdbcType=VARCHAR},
+            <if test="userId != null">
+                #{userId,jdbcType=VARCHAR},
             </if>
-            <if test="password != null" >
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
                 #{password,jdbcType=VARCHAR},
             </if>
-            <if test="age != null" >
-                #{age,jdbcType=INTEGER},
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="mobile != null">
+                #{mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="created != null">
+                #{created,jdbcType=DATE},
+            </if>
+            <if test="modified != null">
+                #{modified,jdbcType=DATE},
             </if>
         </trim>
     </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="com.ng.alsolang.domain.user.User" >
-        update user
-        <set >
-            <if test="username != null" >
-                username = #{username,jdbcType=VARCHAR},
+
+    <!--根据主键动态更新用户-->
+    <update id="updateByPrimaryKeySelective" parameterType="com.ng.alsolang.domain.user.User">
+        update USER
+        <set>
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
             </if>
-            <if test="password != null" >
-                password = #{password,jdbcType=VARCHAR},
+            <if test="userId != null">
+                #{userId,jdbcType=VARCHAR},
             </if>
-            <if test="age != null" >
-                age = #{age,jdbcType=INTEGER},
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="mobile != null">
+                #{mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="created != null">
+                #{created,jdbcType=DATE},
+            </if>
+            <if test="modified != null">
+                #{modified,jdbcType=DATE},
             </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
-    <update id="updateByPrimaryKey" parameterType="com.ng.alsolang.domain.user.User" >
-        update user
-        set username = #{username,jdbcType=VARCHAR},
-        password = #{password,jdbcType=VARCHAR},
-        age = #{age,jdbcType=INTEGER}
+
+    <!--根据主键更新用户-->
+    <update id="updateByPrimaryKey" parameterType="com.ng.alsolang.domain.user.User">
+        update USER
+        set ID = #{id,jdbcType=BIGINT},
+            userId = #{userId,jdbcType=VARCHAR},
+            userName = #{userName,jdbcType=VARCHAR},
+            password = #{password,jdbcType=VARCHAR},
+            email = #{email,jdbcType=VARCHAR},
+            mobile = #{mobile,jdbcType=VARCHAR},
+            status = #{status,jdbcType=INTEGER},
+            created = #{created,jdbcType=DATE},
+            modified = #{modified,jdbcType=DATE}
         where id = #{id,jdbcType=INTEGER}
     </update>
-
-
 
 </mapper>
