@@ -18,8 +18,13 @@ import javax.servlet.http.HttpServletResponse;
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginInterceptor.class);
+
     // 不需要拦截的地址
-    private static final String[] IGNORE_URI = {"user/userlogin.do","index/index.do", "conference/createConference", "user/userindex.do", "/user/toUserRegister", "user/userRegister.do", "userlogin.jsp"};
+    private static final String[] IGNORE_URI = {
+            "user/userlogin.do","index/index.do", "conference/createConference.do",
+            "user/userindex.do", "/user/toUserRegister", "user/userRegister.do", "conference/getMeetings.do",
+            "userlogin.jsp"};
+
     private static final String LOGIN_URL = "/userlogin.do";
 
     /**

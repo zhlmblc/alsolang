@@ -150,8 +150,8 @@ public class HttpUtil {
     public static void main(String[] args) {
 
         // 创建会议测试
-//        String base_url_create = "http://192.168.1.103/bigbluebutton/api/create?";
-//        String base_url_join = "http://192.168.1.103/bigbluebutton/api/join?";
+//        String base_url_create = "http://10.0.17.44/bigbluebutton/api/create?";
+//        String base_url_join = "http://10.0.17.44/bigbluebutton/api/join?";
 //        String create_parameters = "name=test"+"&meetingID=test"+"&attendeePW=ap&moderatorPW=mp";
 //        String salt = "6c254af008de372d81d73d844417efea";
 //        String url = base_url_create + create_parameters + "&checksum="
@@ -178,10 +178,10 @@ public class HttpUtil {
         System.out.println(checksum);
         params.put("checksum", checksum);
         System.out.println(getUrlRequestInfo("", params));
-        System.out.println(post("http://192.168.1.103/bigbluebutton/api/create", params));*/
+        System.out.println(post("http://10.0.17.44/bigbluebutton/api/create", params));*/
 
         // 会议地址
-         String BIG_BLUE_BUTTON_URL = "http://192.168.1.103/bigbluebutton/";
+         String BIG_BLUE_BUTTON_URL = "http://10.0.17.44/bigbluebutton/";
         String SALT = "6c254af008de372d81d73d844417efea";
         String meetingParameters = "random=" + new Random().nextInt(9999);
         String url = BIG_BLUE_BUTTON_URL + "api/getMeetings?" + meetingParameters

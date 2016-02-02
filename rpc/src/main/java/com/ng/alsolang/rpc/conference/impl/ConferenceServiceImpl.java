@@ -26,10 +26,10 @@ import java.util.Random;
 @Service("conferenceServiceImpl")
 public class ConferenceServiceImpl implements ConferenceService {
     // todo 后续要放到配置文件中
-    public static final String BASE_URL_CREATE = "http://192.168.1.103/bigbluebutton/api/create?";
-    public static final String BASE_URL_JOIN = "http://192.168.1.103/bigbluebutton/api/join?";
+    public static final String BASE_URL_CREATE = "http://10.0.17.44/bigbluebutton/api/create?";
+    public static final String BASE_URL_JOIN = "http://10.0.17.44/bigbluebutton/api/join?";
     public static final String SALT = "6c254af008de372d81d73d844417efea";
-    public static final String BIG_BLUE_BUTTON_URL = "http://192.168.1.103/bigbluebutton/";
+    public static final String BIG_BLUE_BUTTON_URL = "http://10.0.17.44/bigbluebutton/";
 
     /**
      * 返回会议列表地址
@@ -69,12 +69,12 @@ public class ConferenceServiceImpl implements ConferenceService {
                 String meetingID = meeting.getElementsByTagName("meetingID").item(0).getTextContent();
                 String password = meeting.getElementsByTagName("moderatorPW").item(0).getTextContent();
 
-                String data = getURL( getMeetingInfoURL(meetingID, password) );
+                String data = getURL(getMeetingInfoURL(meetingID, password));
 
                 if (data.indexOf("<response>") != -1) {
                     int startIndex = data.indexOf(startResponse) + startTag.length();
                     int endIndex = data.indexOf(endResponse);
-                    newXMldocument +=  "<meeting>" + data.substring(startIndex, endIndex) + "</meeting>";
+                    newXMldocument += "<meeting>" + data.substring(startIndex, endIndex) + "</meeting>";
                 }
             }
             newXMldocument += endTag;
@@ -87,6 +87,12 @@ public class ConferenceServiceImpl implements ConferenceService {
     }
 
 
+    /**
+     * 获取url
+     *
+     * @param url
+     * @return
+     */
     public String getURL(String url) {
         StringBuffer response = null;
 
@@ -108,7 +114,7 @@ public class ConferenceServiceImpl implements ConferenceService {
                 Reader reader = new InputStreamReader(input, "UTF-8");
                 reader = new BufferedReader(reader);
                 char[] buffer = new char[1024];
-                for (int n = 0; n >= 0;) {
+                for (int n = 0; n >= 0; ) {
                     n = reader.read(buffer, 0, buffer.length);
                     if (n > 0)
                         response.append(buffer, 0, n);
@@ -128,10 +134,15 @@ public class ConferenceServiceImpl implements ConferenceService {
         }
     }
 
-
-    //
-// parseXml() -- return a DOM of the XML
-//
+    /**
+     * 解析xml为文档对象
+     *
+     * @param xml
+     * @return doc
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
     public static Document parseXml(String xml)
             throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory
@@ -141,6 +152,13 @@ public class ConferenceServiceImpl implements ConferenceService {
         return doc;
     }
 
+    /**
+     * 获取会议地址信息
+     *
+     * @param meetingID
+     * @param password
+     * @return
+     */
     public String getMeetingInfoURL(String meetingID, String password) {
         String meetingParameters = "meetingID=" + urlEncode(meetingID)
                 + "&password=" + password;
@@ -149,10 +167,12 @@ public class ConferenceServiceImpl implements ConferenceService {
                 + EncryptUtil.checksum("getMeetingInfo" + meetingParameters + SALT);
     }
 
-
-    //
-// urlEncode() -- URL encode the string
-//
+    /**
+     * URL encode the string
+     *
+     * @param s
+     * @return
+     */
     public static String urlEncode(String s) {
         try {
             return URLEncoder.encode(s, "UTF-8");

@@ -1,13 +1,16 @@
 package com.ng.alsolang.web.controller.conference;
 
+import com.ng.alsolang.domain.conference.Meetings;
 import com.ng.alsolang.domain.user.User;
 import com.ng.alsolang.domain.util.EncryptUtil;
+import com.ng.alsolang.domain.util.JaxbUtil;
 import com.ng.alsolang.rpc.conference.ConferenceService;
 import com.ng.alsolang.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.w3c.dom.Document;
@@ -41,8 +44,8 @@ public class ConferenceController {
     private ConferenceService conferenceService;
 
     // todo 后续要放到配置文件中
-    public static final String BASE_URL_CREATE = "http://192.168.1.103/bigbluebutton/api/create?";
-    public static final String BASE_URL_JOIN = "http://192.168.1.103/bigbluebutton/api/join?";
+    public static final String BASE_URL_CREATE = "http://10.0.17.44/bigbluebutton/api/create?";
+    public static final String BASE_URL_JOIN = "http://10.0.17.44/bigbluebutton/api/join?";
     public static final String SALT = "6c254af008de372d81d73d844417efea";
 
 
@@ -59,6 +62,7 @@ public class ConferenceController {
         String meetingID = UUID.randomUUID().toString();
         String xml_param = "";
         String create_parameters = "name=" + urlEncode(name) + "&meetingID=" + meetingID + "&attendeePW=ap&moderatorPW=" + password;
+
         // 请求服务地址
         String url = BASE_URL_CREATE + create_parameters + "&checksum="
                 + EncryptUtil.checksum("create" + create_parameters + SALT);
@@ -68,25 +72,20 @@ public class ConferenceController {
         try {
             doc = parseXml(postURL(url, xml_param));
         } catch (Exception e) {
-            logger.error("parseXml error ==>>",e);
+            logger.error("parseXml error ==>>", e);
             e.printStackTrace();
         }
 
         // 解析返回报文返回会议地址
-        if (doc.getElementsByTagName("returncode").item(0).getTextContent()
-                .trim().equals("SUCCESS")) {
-            //
-            // Looks good, now return a URL to join that meeting
-            //
+        if (doc.getElementsByTagName("returncode").item(0).getTextContent().trim().equals("SUCCESS")) {
             String join_parameters = "meetingID=" + urlEncode(meetingID)
                     + "&fullName=" + urlEncode(name) + "&password=" + password;
-            logger.info(" the join_url is ==>> {}",BASE_URL_JOIN + join_parameters + "&checksum="
-                    + EncryptUtil.checksum("join" + join_parameters + SALT ));
+            logger.info(" the join_url is ==>> {}", BASE_URL_JOIN + join_parameters + "&checksum="
+                    + EncryptUtil.checksum("join" + join_parameters + SALT));
             return BASE_URL_JOIN + join_parameters + "&checksum="
                     + EncryptUtil.checksum("join" + join_parameters + SALT);
 
         }
-
 
         return doc.getElementsByTagName("messageKey").item(0).getTextContent()
                 .trim()
@@ -97,17 +96,31 @@ public class ConferenceController {
 
     /**
      * 获取所有会议
+     *
      * @return
      */
     @RequestMapping(value = "/getMeetings.do")
-    public String getMeetings() {
-        conferenceService.getMeetingsURL();
-        return "";
+    public String getMeetings(HttpServletRequest request) {
+        ModelMap model = new ModelMap();
+        JaxbUtil resultBinder = new JaxbUtil(Meetings.class,
+                JaxbUtil.CollectionWrapper.class);
+        String retXml = conferenceService.getMeetings();
+
+        Meetings meetings = resultBinder.fromXml(retXml);
+        model.addAttribute("mettings",meetings);
+        return "conference/getMeetings";
     }
 
-    //
-    // parseXml() -- return a DOM of the XML
-    //
+
+    /**
+     * 解析xml为文档对象
+     *
+     * @param xml
+     * @return doc
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
     public static Document parseXml(String xml)
             throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory
@@ -118,10 +131,24 @@ public class ConferenceController {
     }
 
 
+    /**
+     * 发送 http post请求
+     * @param targetURL
+     * @param urlParameters
+     * @return
+     */
     public static String postURL(String targetURL, String urlParameters) {
         return postURL(targetURL, urlParameters, "text/xml");
     }
 
+
+    /**
+     * 发送请求
+     * @param targetURL
+     * @param urlParameters
+     * @param contentType
+     * @return
+     */
     public static String postURL(String targetURL, String urlParameters, String contentType) {
         URL url;
         HttpURLConnection connection = null;
@@ -174,9 +201,11 @@ public class ConferenceController {
     }
 
 
-    //
-// urlEncode() -- URL encode the string
-//
+    /**
+     * URL encode the string
+     * @param s
+     * @return
+     */
     public static String urlEncode(String s) {
         try {
             return URLEncoder.encode(s, "UTF-8");
@@ -186,9 +215,11 @@ public class ConferenceController {
         return "";
     }
 
-    //
-//encodeURIComponent() -- Java encoding similiar to JavaScript encodeURIComponent
-//
+    /**
+     * encoding similiar to JavaScript encodeURIComponent
+     * @param component
+     * @return
+     */
     public static String encodeURIComponent(String component) {
         String result = null;
 
