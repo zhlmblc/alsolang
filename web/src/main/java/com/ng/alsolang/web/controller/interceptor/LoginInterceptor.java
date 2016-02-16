@@ -23,9 +23,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     private static final String[] IGNORE_URI = {
             "user/userlogin.do","index/index.do", "conference/createConference.do",
             "user/userindex.do", "/user/toUserRegister", "user/userRegister.do", "conference/getMeetings.do",
-            "userlogin.jsp"};
+            "userlogin.jsp", "conference/joinConference.do","record/getRecordings.do"};
 
-    private static final String LOGIN_URL = "/userlogin.do";
+    private static final String LOGIN_URL = "user/userlogin.do";
 
     /**
      * 请求预处理

@@ -15,13 +15,18 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Meeting {
-
+    // 返回码
     private String returncode;
+    // 会议名称
     private String meetingName;
+    // 会议ID
     private String meetingID;
+    // 创建时间
     private Long createTime;
+    // 创建日期
     @XmlJavaTypeAdapter(JaxbDateAdapter.class)
     private Date createDate;
+    // 音桥
     private String voiceBridge;
     private String dialNumber;
     private String attendeePW;
@@ -36,7 +41,7 @@ public class Meeting {
     private Long participantCount;
     private Integer maxUsers;
     private Integer moderatorCount;
-
+    // 与会人员
     @XmlElementWrapper(name = "attendees")
     @XmlElement(name = "attendee")
     private List<Attendee> attendees;

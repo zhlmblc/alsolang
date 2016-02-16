@@ -1,16 +1,18 @@
 package com.ng.alsolang.web.controller.conference;
 
+import static com.ng.alsolang.domain.util.EncodeUtil.urlEncode;
 import com.ng.alsolang.domain.conference.Meetings;
-import com.ng.alsolang.domain.user.User;
+import static com.ng.alsolang.domain.conference.constants.BaseApiUrl.*;
+import static com.ng.alsolang.domain.util.HttpUtil.postURL;
+import static com.ng.alsolang.domain.util.ParseXmlUtil.parseXml;
+
 import com.ng.alsolang.domain.util.EncryptUtil;
 import com.ng.alsolang.domain.util.JaxbUtil;
 import com.ng.alsolang.rpc.conference.ConferenceService;
-import com.ng.alsolang.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.w3c.dom.Document;
@@ -19,7 +21,6 @@ import org.xml.sax.SAXException;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,36 +39,36 @@ import java.util.UUID;
 @Controller
 @RequestMapping("/conference")
 public class ConferenceController {
+
     private static final Logger logger = LoggerFactory.getLogger(ConferenceController.class);
 
     @Resource(name = "conferenceServiceImpl")
     private ConferenceService conferenceService;
 
-    // todo 后续要放到配置文件中
-    public static final String BASE_URL_CREATE = "http://10.0.17.44/bigbluebutton/api/create?";
-    public static final String BASE_URL_JOIN = "http://10.0.17.44/bigbluebutton/api/join?";
-    public static final String SALT = "6c254af008de372d81d73d844417efea";
-
-
     /**
-     * 创建会议
+     * 创建一个新的会议
      *
      * @return
      */
     @ResponseBody
     @RequestMapping(value = "/createConference.do")
     public String createConference(HttpServletRequest request, Model model) {
-        String name = request.getParameter("userName");
+        // 会议名称
+        String name = request.getParameter("meetingName");
+        // 用户名称
+        String userName = request.getParameter("userName");
+        // 会议密码
         String password = request.getParameter("password");
+        // 会议ID
         String meetingID = UUID.randomUUID().toString();
+        // xml参数
         String xml_param = "";
-        String create_parameters = "name=" + urlEncode(name) + "&meetingID=" + meetingID + "&attendeePW=ap&moderatorPW=" + password;
-
+        // 创建会议参数
+        String create_parameters = "record=true&name=" + urlEncode(name) + "&meetingID=" + meetingID + "&attendeePW=" + password + "&moderatorPW=" + password;
         // 请求服务地址
-        String url = BASE_URL_CREATE + create_parameters + "&checksum="
-                + EncryptUtil.checksum("create" + create_parameters + SALT);
+        String url = BASE_URL_CREATE + create_parameters + "&checksum=" + EncryptUtil.checksum("create" + create_parameters + SALT);
 
-        //调用接口
+        // 调用接口
         Document doc = null;
         try {
             doc = parseXml(postURL(url, xml_param));
@@ -78,20 +79,39 @@ public class ConferenceController {
 
         // 解析返回报文返回会议地址
         if (doc.getElementsByTagName("returncode").item(0).getTextContent().trim().equals("SUCCESS")) {
-            String join_parameters = "meetingID=" + urlEncode(meetingID)
-                    + "&fullName=" + urlEncode(name) + "&password=" + password;
+            String join_parameters = "meetingID=" + urlEncode(meetingID) + "&fullName=" + urlEncode(userName) + "&password=" + password;
             logger.info(" the join_url is ==>> {}", BASE_URL_JOIN + join_parameters + "&checksum="
                     + EncryptUtil.checksum("join" + join_parameters + SALT));
-            return BASE_URL_JOIN + join_parameters + "&checksum="
-                    + EncryptUtil.checksum("join" + join_parameters + SALT);
-
+            return BASE_URL_JOIN + join_parameters + "&checksum=" + EncryptUtil.checksum("join" + join_parameters + SALT);
         }
 
-        return doc.getElementsByTagName("messageKey").item(0).getTextContent()
-                .trim()
+        // 返回错误信息
+        return doc.getElementsByTagName("messageKey").item(0).getTextContent().trim()
                 + ": "
                 + doc.getElementsByTagName("message").item(0).getTextContent()
                 .trim();
+    }
+
+    /**
+     * 加入已存在的会议
+     *
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/joinConference.do")
+    public String joinConference(HttpServletRequest request, Model model) {
+        // 会议ID
+        String meetingID = request.getParameter("meetingID");
+        // 加入密码
+        String password = request.getParameter("password");
+        // todo 用户模块
+        // 如果用户登录了，优先从cookie中获取
+        String fullName = request.getParameter("fullName");
+        String join_parameters = "fullName=" + urlEncode(fullName) + "&meetingID=" + meetingID + "&password=" + password;
+        // 请求服务地址
+        String url = BASE_URL_JOIN + join_parameters + "&checksum=" + EncryptUtil.checksum("join" + join_parameters + SALT);
+        logger.info("get the  BASE_URL_JOIN is  ==>> {}", url);
+        return url;
     }
 
     /**
@@ -100,142 +120,12 @@ public class ConferenceController {
      * @return
      */
     @RequestMapping(value = "/getMeetings.do")
-    public String getMeetings(HttpServletRequest request) {
-        ModelMap model = new ModelMap();
-        JaxbUtil resultBinder = new JaxbUtil(Meetings.class,
-                JaxbUtil.CollectionWrapper.class);
+    public String getMeetings(HttpServletRequest request, Model model) {
+        JaxbUtil resultBinder = new JaxbUtil(Meetings.class, JaxbUtil.CollectionWrapper.class);
         String retXml = conferenceService.getMeetings();
-
         Meetings meetings = resultBinder.fromXml(retXml);
-        model.addAttribute("mettings",meetings);
+        model.addAttribute("meetings", meetings);
         return "conference/getMeetings";
-    }
-
-
-    /**
-     * 解析xml为文档对象
-     *
-     * @param xml
-     * @return doc
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     */
-    public static Document parseXml(String xml)
-            throws ParserConfigurationException, IOException, SAXException {
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory
-                .newInstance();
-        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-        Document doc = docBuilder.parse(new InputSource(new StringReader(xml)));
-        return doc;
-    }
-
-
-    /**
-     * 发送 http post请求
-     * @param targetURL
-     * @param urlParameters
-     * @return
-     */
-    public static String postURL(String targetURL, String urlParameters) {
-        return postURL(targetURL, urlParameters, "text/xml");
-    }
-
-
-    /**
-     * 发送请求
-     * @param targetURL
-     * @param urlParameters
-     * @param contentType
-     * @return
-     */
-    public static String postURL(String targetURL, String urlParameters, String contentType) {
-        URL url;
-        HttpURLConnection connection = null;
-        int responseCode = 0;
-        try {
-            //Create connection
-            url = new URL(targetURL);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", contentType);
-
-            connection.setRequestProperty("Content-Length", "" +
-                    Integer.toString(urlParameters.getBytes().length));
-            connection.setRequestProperty("Content-Language", "en-US");
-
-            connection.setUseCaches(false);
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-
-            //Send request
-            DataOutputStream wr = new DataOutputStream(
-                    connection.getOutputStream());
-            wr.writeBytes(urlParameters);
-            wr.flush();
-            wr.close();
-
-            //Get Response
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            String line;
-            StringBuffer response = new StringBuffer();
-            while ((line = rd.readLine()) != null) {
-                response.append(line);
-                response.append('\r');
-            }
-            rd.close();
-            return response.toString();
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-            return null;
-
-        } finally {
-
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-    }
-
-
-    /**
-     * URL encode the string
-     * @param s
-     * @return
-     */
-    public static String urlEncode(String s) {
-        try {
-            return URLEncoder.encode(s, "UTF-8");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    /**
-     * encoding similiar to JavaScript encodeURIComponent
-     * @param component
-     * @return
-     */
-    public static String encodeURIComponent(String component) {
-        String result = null;
-
-        try {
-            result = URLEncoder.encode(component, "UTF-8")
-                    .replaceAll("\\%28", "(")
-                    .replaceAll("\\%29", ")")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("\\%27", "'")
-                    .replaceAll("\\%21", "!")
-                    .replaceAll("\\%7E", "~");
-        } catch (UnsupportedEncodingException e) {
-            result = component;
-        }
-
-        return result;
     }
 
 }

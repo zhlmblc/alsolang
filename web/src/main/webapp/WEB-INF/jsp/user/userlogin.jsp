@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>慕课互动在线</title>
     <!-- CSS -->
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+    <link rel="stylesheet" href="http://fonts.useso.com/css?family=Roboto:400,100,300,500">
     <link rel="stylesheet" href="${ctx}/assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="${ctx}/assets/module/user/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="${ctx}/assets/module/user/css/form-elements.css">

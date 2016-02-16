@@ -1,6 +1,5 @@
 package com.ng.alsolang.rpc.conference;
 
-import java.util.Random;
 
 /**
  * 在线会议服务类
@@ -24,11 +23,5 @@ public interface ConferenceService {
      */
     public String getMeetings();
 
-    /**
-     *  获取url
-     * @param url
-     * @return
-     */
-    public String getURL(String url);
 
 }
